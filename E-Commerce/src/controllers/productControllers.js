@@ -1,4 +1,6 @@
+import { deleteModel } from "mongoose";
 import product from "../models/product.js";
+import { json } from "express";
 
 const createProduct = async (req, res) => {
   const { productName, ram, rom, price, description, gen, brand } = req.body;
@@ -19,6 +21,7 @@ const createProduct = async (req, res) => {
       rom: rom,
       price: price,
       description: description,
+      brand: brand
     });
 
     res.send(data);
@@ -29,8 +32,21 @@ const createProduct = async (req, res) => {
 };
 const getAllProduct = async (req, res) => {
   try {
-    const data = await product.find();
-    console.log(data);
+    const query = req.query
+    const sort = JSON.parse(req.query.sort || '{}')
+    console.log(sort)
+    // console.log(query)
+    const filter ={}
+    // return sort
+    
+    // if(req.query.brand){filter.brand={$in: req.query.brand.split(',')}}
+    // console.log(filter)
+    
+    // return res.send(filter)
+    // brand: 'Acer'
+    // brand: {$in: ['Acer','Dell']}
+    const data = await product.find(filter).sort(sort).limit(5).skip(5)
+    // console.log(data);
     res.status(200).json({ data });
   } catch (error) {
     console.log(error.message);
