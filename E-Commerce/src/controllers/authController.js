@@ -18,7 +18,6 @@ const register = async (req, res) => {
     if (userFound.length > 0) {
       throw new Error("User already exist");
     }
-
     const data = await User.create({
       userName,
       email,
@@ -80,5 +79,57 @@ const forgotPassword = async (req, res) => {
     
   }
 }
+const verifyOtp = async (req,res) =>{
+    try{
+        const {email,otp} = req.body;
 
-export { register, login, forgotPassword};
+        if (!email || !otp) {
+            throw new Error("Email and otp are required for verification!");
+        }
+
+        const doesEmailMatch = await User.findOne({email:email});
+
+        if (!doesEmailMatch){
+            throw new Error("User is not registered");
+        }
+
+        const doesHaveOtp = await Otp.findOne({email:email, otp:otp});
+
+        if (!doesHaveOtp){
+            throw new Error("User doesn't have OTP!");
+        }
+
+        if(doesHaveOtp.otp !== otp){
+            throw new Error("OTP does not match!");
+        }
+
+        res.status(200).json({message:"OTP verified", data: doesHaveOtp});
+    } catch(error){
+    console.log(error.message);
+    res.send(error.message)
+    }
+};
+
+const resetPassword = async (req,res) =>{
+    try{
+        const {email, password} = req.body;
+        if (!email || !password){
+            throw new Error("Email and password are required!");
+        }
+
+        const doesUserExist = await User.findOne({email:email});
+        if (!doesUserExist) {
+            throw new Error("User is not registered");
+        }
+
+        const data = await User.findOneAndUpdate({email},
+            {password: password},
+            {new: true},);
+        res.status(200).json({message:"Password changed successfully", data});
+        }catch(error){
+            console.log(error.message);
+            res.send(error.message);
+        }
+
+}
+export { register, login, forgotPassword, verifyOtp, resetPassword};
