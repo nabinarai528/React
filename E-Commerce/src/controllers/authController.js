@@ -56,29 +56,33 @@ const login = async (req, res) => {
     res.status(400).send(error.message);
   }
 };
-const forgotPassword = async (req, res) => {
-  try {
-    const {email} = req.body;
-    if (!email){
-        throw new Error("Email is required!")
+const forgotPassword = async (req, res) =>{
+    try{
+        const {email} = req.body
+
+        if(!email){
+            throw new Error("Email is required")
+        }
+
+        const doesUserExist = await User.findOne({email});
+        if(!doesUserExist){
+         throw new Error("User does not exist")
+        }
+        const otp = generateOtp();
+
+        const data = await Otp.create({
+            email,
+            otp,
+        });
+
+        sendMail(email, "Your otp is", otp)
+        
+        res.json({message: "Otp sent successfully", data});
+    } catch(error){
+        console.log(error.message)
+        res.send(error.message)
     }
-    const doesUserExist = await User.findOne({email})
-    if (!doesUserExist){
-      throw new Error ("User doesn't exist!")
-    }
-    console.log(doesUserExist)
-    const otp = generateOtp();
-    const data = await Otp.create({
-      email,
-      otp
-    })
-    res.send (data)
-  } catch (error) {
-    console.log(error.message)
-    res.send(error.message)
-    
-  }
-}
+};
 const verifyOtp = async (req,res) =>{
     try{
         const {email,otp} = req.body;
