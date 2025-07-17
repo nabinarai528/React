@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
+import bcrypt from "bcrypt";
 
 const  connectDb = async()=>{
     try{
@@ -8,6 +9,7 @@ const  connectDb = async()=>{
 
     const adminExist = await User.findOne({email: "admin@gmail.com"})
     console.log(adminExist)
+    const hashedPassword = await bcrypt.hash("admin123", 10);
 
     if(adminExist){
         console.log("Admin already exists")
@@ -16,7 +18,7 @@ const  connectDb = async()=>{
         await User.create({
             userName: "AdminUser",
             email: "admin@gmail.com",
-            password: "admin123",
+            password: hashedPassword,
             role: "ADMIN"
         })  
         console.log("Admin seeded successfully")
