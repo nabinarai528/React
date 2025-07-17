@@ -2,6 +2,8 @@ import generateOtp from "../config/generateOtp.js";
 import Otp from "../models/Otp.js";
 import User from "../models/User.js";
 import jwt from 'jsonwebtoken'
+import { sendMail } from "../Utils/sendMail.js";
+import bcrypt from "bcrypt";
 
 const register = async (req, res) => {
   try {
@@ -18,10 +20,11 @@ const register = async (req, res) => {
     if (userFound.length > 0) {
       throw new Error("User already exist");
     }
+    const hashedPassword = await bcrypt.hash(password, 10);
     const data = await User.create({
       userName,
       email,
-      password,
+      password: hashedPassword,
       phone,
     });
     res.status(200).json({ message: "user registered successfully", data });
@@ -37,8 +40,9 @@ const login = async (req, res) => {
     if (!userExit) {
       throw new Error("Invalid User");
     }
-    console.log(userExit.password, password);
-    if (password !== userExit.password) {
+    const isPasswordMatched = await bcrypt.compare(password, userExit.password);
+    // console.log(userExit.password, password);
+    if (!isPasswordMatched) {
       throw new Error("Invalid Credentials");
     }
     const payload = {
@@ -106,7 +110,9 @@ const verifyOtp = async (req,res) =>{
         if(doesHaveOtp.otp !== otp){
             throw new Error("OTP does not match!");
         }
-
+        await User.findOneAndUpdate({email}, {isOtpVerified: true}, {new: true})
+        //optional
+        await Otp.findOneAndDelete({email});
         res.status(200).json({message:"OTP verified", data: doesHaveOtp});
     } catch(error){
     console.log(error.message);
@@ -125,9 +131,15 @@ const resetPassword = async (req,res) =>{
         if (!doesUserExist) {
             throw new Error("User is not registered");
         }
-
+        if(!doesUserExist.isOtpVerified){
+          throw new Error("Otp is not verified!")
+        }
+        const hashedPassword = await bcrypt.hash(password, 10);
         const data = await User.findOneAndUpdate({email},
-            {password: password},
+            {password: hashedPassword,
+              isOtpVerified: false,
+            },
+
             {new: true},);
         res.status(200).json({message:"Password changed successfully", data});
         }catch(error){
