@@ -22,10 +22,9 @@ const userSchema = new mongoose.Schema({
         enum: ["ADMIN", "CUSTOMER"],
         default: "CUSTOMER"
     },
-    isOtpVerified: {
-        type: Boolean,
-        default: false
-}
+    otpExpiryDate: {
+        type: Date,
+        default: null}
 }, {
     timestamps: true
 })
