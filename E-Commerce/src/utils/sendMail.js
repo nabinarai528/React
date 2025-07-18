@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
  service: "gmail",
   auth: {
-    user: "np05cp4a230073@iic.edu.np",
+    user: "nabinarai165@gmail.com",
     pass: "etas rofn qjcg vwnl",
   },
 });
@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 // Wrap in an async IIFE so we can use await.
 const sendMail = async (email,subject,message) => {
   const info = await transporter.sendMail({
-    from: '"Nabina Rai" <np05cp4a230073@iic.edu.np>',
+    from: '"Nabina Rai" <nabinarai165@gmail.com>',
     to: email,
     subject: subject,
     // text: "Hello world?", 
