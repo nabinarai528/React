@@ -110,7 +110,10 @@ const verifyOtp = async (req,res) =>{
         if(doesHaveOtp.otp !== otp){
             throw new Error("OTP does not match!");
         }
-        await User.findOneAndUpdate({email}, {isOtpVerified: true}, {new: true})
+        await User.findOneAndUpdate(
+          {email}, 
+          {otpExpiryDate: new Date(Date.now() + 1 * 60 * 1000)}, // OTP valid for 10 minutes
+          {new: true})
         //optional
         await Otp.findOneAndDelete({email});
         res.status(200).json({message:"OTP verified", data: doesHaveOtp});
@@ -131,13 +134,13 @@ const resetPassword = async (req,res) =>{
         if (!doesUserExist) {
             throw new Error("User is not registered");
         }
-        if(!doesUserExist.isOtpVerified){
-          throw new Error("Otp is not verified!")
+        if(!doesUserExist.otpExpiryDate || new Date() > doesUserExist.otpExpiryDate ){
+          throw new Error("Otp is not verified or is already expired!")
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const data = await User.findOneAndUpdate({email},
             {password: hashedPassword,
-              isOtpVerified: false,
+              otpExpiryDate: null,
             },
 
             {new: true},);
